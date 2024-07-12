@@ -12,7 +12,7 @@ const Menu = () => {
     }
 
   return (
-    <div className='py-6 lg:py-[40px] lg:pl-4'>
+    <div className='py-6 lg:py-[40px] lg:pl-4 '>
       <Container>
         <Flex className="justify-between lg:w-[80%]">
             <div className="ml-14 lg:ml-0">

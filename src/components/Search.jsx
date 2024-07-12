@@ -95,7 +95,7 @@ const Search = () => {
                 </div>
               )}
               {cartMenu && (
-                <div className="lg:w-[360px] w-[280px] lg:absolute lg:top-[63px] lg:right-[-65px] absolute top-[25px] right-[-42px] border">
+                <div className="lg:w-[360px] w-[280px] lg:absolute lg:top-[63px] lg:right-[-65px] absolute top-[25px] right-[-42px] border ">
                   <div className="flex items-center justify-between  bg-[#F5F5F3] lg:p-[20px] p-[15px]">
                     <img className="lg:w-[80px] w-[50px]" src={cartImg} alt="" />
                     <div className="">
@@ -140,7 +140,7 @@ const Search = () => {
       <Container>
         <Flex className="justify-between">
           {showMneu && (
-            <div className="bg-[#262626] lg:w-[263px] w-[200px] p-[21px] lg:static absolute lg:right-0 right-[5px]">
+            <div className="bg-[#262626] lg:w-[263px] w-[200px] p-[21px]  absolute lg:left-[195px] right-[5px] z-50">
               <ul className="">
                 <li className=" lg:text-[14px] font-normal text-[#FFFFFFB2] font-dmsans py-[8px] hover:cursor-pointer hover:ml-5 duration-300 ease-in-out hover:text-[#FFFFFF] hover:font-bold">
                   {" "}
