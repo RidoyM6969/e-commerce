@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import Container from "./Container";
 import Flex from "./Flex";
 import { CgMenuLeft } from "react-icons/cg";
@@ -8,14 +8,27 @@ import { IoPerson } from "react-icons/io5";
 import { MdOutlineArrowDropDown } from "react-icons/md";
 import { RxCross2 } from "react-icons/rx";
 import cartImg from "../assets/cart.png";
+import { useDispatch, useSelector } from "react-redux";
+import { Link, useNavigate } from "react-router-dom";
+import { productApi } from "./Cntextapi";
+import { removeProduct } from "./slice/productSlice";
 
 const Search = () => {
+  let dispatch = useDispatch()
+  let data = useContext(productApi);
+  let cartInfo = useSelector((state) => state.product.cartItems);
+
+  
+
+  let naviget = useNavigate();
+
   let [showMneu, getShowmenu] = useState(false);
   let [showAcc, getshowAcc] = useState(false);
   let [cartMenu, showCartmenu] = useState(false);
   let menuChart = useRef();
   let accChart = useRef();
   let cartRef = useRef();
+  let cartMenushow = useRef();
 
   useEffect(() => {
     window.addEventListener("click", (m) => {
@@ -34,8 +47,44 @@ const Search = () => {
       } else {
         showCartmenu(false);
       }
+      if (cartMenushow.current.contains(m.target)) {
+        showCartmenu(true);
+      }
     });
-  }, [showMneu, showAcc, cartMenu]);
+  }, [showMneu, showAcc, cartMenu,cartMenushow]);
+
+  let [searceChange, setSearchChange] = useState("");
+  let [searchfilter, setSearchFilter] = useState([]);
+  let [selectedIndex, setSelectedIndex] = useState(-1);
+
+  let handelSearch = (element) => {
+    setSearchChange(element.target.value);
+    if (element.target.value == "") {
+      setSearchFilter([]);
+    } else {
+      let searchOne = data.filter((item) =>
+        item.title.toLowerCase().includes(element.target.value.toLowerCase())
+      );
+      setSearchFilter(searchOne);
+      setSelectedIndex(-1); // Reset the index when search changes
+    }
+  };
+
+  let handelsearchproduc = (id) => {
+    naviget(`/shope/${id}`);
+    setSearchFilter([]);
+    setSearchChange("");
+  };
+
+  let handelKeyDown = (e) => {
+    if (e.key === "ArrowDown") {
+      setSelectedIndex((prevIndex) => prevIndex < searchfilter.length - 1 ? prevIndex + 1 : prevIndex);
+    } else if (e.key === "ArrowUp") {
+      setSelectedIndex((prevIndex) => prevIndex > 0 ? prevIndex - 1 : prevIndex);
+    } else if (e.key === "Enter" && selectedIndex >= 0) {
+      handelsearchproduc(searchfilter[selectedIndex].id);
+    }
+  };
 
   return (
     <div>
@@ -56,17 +105,43 @@ const Search = () => {
 
             <div className="flex relative xl:w-[601px] lg:w-[551px] w-full ">
               <input
+                onChange={handelSearch}
+                onKeyDown={handelKeyDown}
                 type="search"
                 name=""
                 placeholder="Search Products"
                 className="p-[21px] xl:w-[601px] lg:w-[551px] w-full h-[50px]"
+                value={searceChange}
               />
               <div className="absolute right-[21px] top-[17px] w-[15px] ">
                 <IoSearchSharp />
               </div>
+              {searchfilter.length > 0 &&
+                <div className="absolute top-[55px] left-[50px] w-[501px] h-[400px] overflow-y-scroll z-[999] bg-white">
+                  {searchfilter.map((item, index) => (
+                    <div
+                      key={item.id}
+                      onClick={() => handelsearchproduc(item.id)}
+                      className={`flex items-center bg-[#F5F5F3] ${selectedIndex === index ? "bg-gray-300" : ""
+                        }`}
+                    >
+                      <img
+                        className="lg:w-[80px] w-[50px]"
+                        src={item.thumbnail}
+                        alt=""
+                      />
+                      <div className="">
+                        <h4 className="lg:text-[14px] text-[13px] font-bold font-dmsans capitalize ">
+                          {item.title}
+                        </h4>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              }
             </div>
 
-            <div className="flex lg:gap-x-[41px] items-center lg:w-[33px] lg:relative absolute gap-x-5 w-[45px] top-[22px] right-[50px] lg:top-0 lg:right-0">
+            <div className="flex lg:gap-x-[41px] items-center lg:w-[33px] lg:relative absolute gap-x-5 w-[45px] top-[22px] right-[50px] lg:top-0 ">
               <div
                 ref={accChart}
                 className="flex items-center hover:cursor-pointer"
@@ -79,11 +154,20 @@ const Search = () => {
                 </div>
               </div>
               <div ref={cartRef} className="lg:w-[18px] hover:cursor-pointer">
-                <HiShoppingCart />
+                {cartInfo.length > 0 ? (
+                  <div className="absolute top-[-20px] right-[-80px] h-[20px] w-[20px] bg-red-400 rounded-full text-black text-center leading-[20px] border-none ">
+                    {cartInfo.length}
+                  </div>
+                ) : (
+                  ""
+                )}
+                <div className="text-[27px]">
+                  <HiShoppingCart />
+                </div>
               </div>
 
               {showAcc && (
-                <div className="w-[200px] lg:bg-transparent border text-center lg:absolute lg:top-[64px] lg:right-[-6px] absolute top-[25px] right-0 bg-white ">
+                <div className="w-[200px] lg:bg-[#F5F5F3] border text-center lg:absolute lg:top-[64px] lg:right-[-6px] absolute top-[25px] right-0 bg-white z-[999] ">
                   <ul>
                     <li className="py-[17px] px-[50px] hover:bg-black text-[14px] font-bold font-dmsans hover:text-white duration-300 ease-in-out ">
                       My Account
@@ -94,44 +178,52 @@ const Search = () => {
                   </ul>
                 </div>
               )}
-              {cartMenu && (
-                <div className="lg:w-[360px] w-[280px] lg:absolute lg:top-[63px] lg:right-[-65px] absolute top-[25px] right-[-42px] border ">
-                  <div className="flex items-center justify-between  bg-[#F5F5F3] lg:p-[20px] p-[15px]">
-                    <img className="lg:w-[80px] w-[50px]" src={cartImg} alt="" />
-                    <div className="">
-                      <h4 className="lg:text-[14px] text-[13px] font-bold font-dmsans capitalize ">
-                        Black Smart Watch
-                      </h4>
-                      <span className="lg:text-[14px] text-[13px] font-bold font-dmsans">
-                        $44.00 copy
-                      </span>
-                    </div>
-                    <div className="">
-                      <RxCross2 />
-                    </div>
-                  </div>
-                  <div className="lg:p-[20px] p-[15px] mt-0 lg:mt-[14px] bg-white">
-                    <h6 className="lg:text-[16px] text-[14px] font-normal font-dmsans ">
-                      Subtotal:
-                      <span className="lg:text-[16px] text-[14px] font-bold font-dmsans ml-1 ">
-                        $44.00
-                      </span>
-                    </h6>
-                    <div className="mt-[13px] flex justify-between">
+              <div className="" ref={cartMenushow}>
+                {cartMenu && (
+                  <div className="lg:w-[360px] w-[280px] lg:absolute lg:top-[63px] lg:right-[-65px] absolute top-[25px] right-[-42px] border z-[999]">
+                    {cartInfo.map((item,i) => (
+                      <div>
+                        <div className="flex items-center justify-between  bg-[#F5F5F3] lg:p-[20px] p-[15px]">
+                          <img
+                            className="lg:w-[80px] w-[50px]"
+                            src={item.thumbnail}
+                            alt=""
+                          />
+                          <div className="">
+                            <h4 className="lg:text-[14px] text-[13px] font-bold font-dmsans capitalize ">
+                              {item.title}
+                            </h4>
+                            <span className="lg:text-[14px] text-[13px] font-bold font-dmsans">
+                              ${item.price}
+                            </span>
+                          </div>
+                          <div className="">
+                            <button onClick={()=>dispatch(removeProduct(i))}>
+                            <RxCross2 />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    <div className="pb-1 pl-1 pr-1 flex justify-between bg-[#F5F5F3]">
                       <div className="">
-                        <button className="lg:py-[16px] lg:px-[41px] py-[8px] px-[20px] border lg:text-[16px] text-[14px] font-bold hover:bg-black hover:text-white duration-300 ease-in-out ">
-                          View Cart
-                        </button>
+                        <Link to="/cart">
+                          <button className="lg:py-[16px] lg:px-[41px] py-[8px] px-[20px] border lg:text-[16px] text-[14px] font-bold bg-black text-white hover:bg-white hover:text-black duration-300 ease-in-out rounded-lg ">
+                            View Cart
+                          </button>
+                        </Link>
                       </div>
                       <div className="">
-                        <button className="lg:py-[16px] lg:px-[41px] py-[8px] px-[20px] border lg:text-[16px] text-[14px] font-bold hover:bg-black hover:text-white duration-300 ease-in-out ">
-                          Checkout
-                        </button>
+                        <Link to="/checkout">
+                          <button className="lg:py-[16px] lg:px-[41px] py-[8px] px-[20px] border lg:text-[16px] text-[14px] font-bold bg-black text-white hover:bg-white hover:text-black duration-300 ease-in-out rounded-lg ">
+                            Checkout
+                          </button>
+                        </Link>
                       </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </Flex>
         </Container>
